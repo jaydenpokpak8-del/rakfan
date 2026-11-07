@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">คลังรวมตัวอย่างงาน & โทนร้านค้า</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK (v9 Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #FAF6F0; color: #4A3B32; }
+        .cherry-theme { background-color: #C82A38; }
+        .cream-card { background-color: #FFFDF9; border: 1px solid #EEDCD9; }
+        .vintage-border { border: 1px solid #EEDCD9; border-radius: 1.25rem; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #FAF6F0; }
+        ::-webkit-scrollbar-thumb { background: #EEDCD9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C82A38; }
+    </style>
+</head>
+<body class="bg-[#FAF6F0] min-h-screen flex flex-col justify-between">
+
+    <!-- Welcome Gate Modal -->
+    <div id="welcome-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#FFFDF9] rounded-3xl max-w-md w-full p-8 shadow-2xl border border-[#EEDCD9] text-center relative overflow-hidden">
+            <div class="w-16 h-16 rounded-full border-2 border-white shadow-md mx-auto mb-4 overflow-hidden bg-[#FAF6F0] flex items-center justify-center">
+                <img id="welcome-icon-preview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+            </div>
+            <h2 class="text-2xl font-bold text-[#5A3E36] mb-2">ยินดีต้อนรับสู่คลังผลงานค่ะ!</h2>
+            <p class="text-xs text-[#8C6D65] mb-6">กรุณากรอกชื่อและอีเมลของคุณ เพื่อเข้าชมและรับประสบการณ์ที่ดีที่สุด (ใส่แค่ครั้งแรกเท่านั้นค่ะ)</p>
+            <form onsubmit="handleVisitorLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-[#8C6D65] mb-1">ชื่อที่ต้องการแสดง</label>
+                    <input type="text" id="visitor-name" placeholder="เช่น คุณลูกค้าคนสวย" class="w-full px-4 py-2.5 border border-[#EEDCD9] rounded-2xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C82A38]" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-[#8C6D65] mb-1">อีเมลของคุณ</label>
+                    <input type="email" id="visitor-email" placeholder="example@email.com" class="w-full px-4 py-2.5 border border-[#EEDCD9] rounded-2xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C82A38]" required>
+                </div>
+                <button type="submit" class="w-full py-3 rounded-2xl cherry-theme text-white font-bold shadow-md hover:opacity-95 transition text-sm">เข้าสู่เว็บไซต์ 🎀</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Header / Navigation Bar -->
+    <header class="w-full bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#EEDCD9] sticky top-0 z-40 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full border-2 border-white shadow-md overflow-hidden bg-[#FAF6F0] flex items-center justify-center shrink-0">
+                    <img id="nav-shop-icon" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <span id="nav-shop-name" class="font-bold text-base md:text-lg text-[#5A3E36] block leading-tight">สตูดิโอพาสเทล</span>
+                    <span id="user-display-tag" class="text-xs text-[#C82A38] font-medium">ยินดีต้อนรับครับ/ค่ะ</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="admin-nav-btn" onclick="openAdminDashboard()" class="hidden items-center space-x-1.5 bg-[#F9EBEA] hover:bg-[#F2D6D9] text-[#C82A38] px-3.5 py-2 rounded-full font-medium text-xs md:text-sm transition shadow-sm border border-[#EEDCD9]">
+                    <span>🛠️</span>
+                    <span>ระบบหลังบ้าน</span>
+                </button>
+                <button onclick="logoutVisitor()" title="เปลี่ยนบัญชีผู้ใช้" class="p-2 rounded-full bg-[#FAF6F0] hover:bg-gray-200 text-gray-600 text-xs transition border border-[#EEDCD9]">
+                    🔄
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <div class="max-w-6xl mx-auto px-4 pt-6">
+            <div class="vintage-border overflow-hidden bg-white shadow-sm relative">
+                <div id="banner-container" class="h-44 md:h-60 w-full bg-gradient-to-r from-[#F7D6D0] via-[#FAF6F0] to-[#F5C6C2] bg-cover bg-center relative">
+                    <div class="absolute inset-0 bg-black/5"></div>
+                </div>
+
+                <div class="px-4 md:px-6 pb-6 pt-0 relative flex flex-col md:flex-row items-center md:items-end justify-between -mt-14 md:-mt-16 gap-4">
+                    <div class="flex flex-col md:flex-row items-center md:items-end gap-4 text-center md:text-left">
+                        <img id="profile-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Profile" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow-md bg-white">
+                        <div class="mb-1">
+                            <h1 id="site-main-title" class="text-xl md:text-2xl font-bold text-[#5A3E36]">คลังรวมตัวอย่างงาน & โทนร้านค้า</h1>
+                            <p id="site-sub-title" class="text-xs md:text-sm text-[#8C6D65] mt-1">รวบรวมเรฟเฟอเรนซ์งานออกแบบ สคริปต์แนวพูดคุย และโทนแต่งร้านค้าแบบเรียบหรู 🍓</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="max-w-6xl mx-auto px-4 mt-6">
+            <div class="bg-[#FFFDF9] vintage-border p-5 shadow-sm">
+                <h2 class="text-base md:text-lg font-bold text-[#5A3E36] mb-4 flex items-center gap-2">
+                    <span>💌</span> ช่องทางการติดต่อ & สั่งซื้อ
+                </h2>
+                <div id="contact-channels-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- Categories Filter Section -->
+        <div class="max-w-6xl mx-auto px-4 mt-6">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base md:text-lg font-bold text-[#5A3E36] flex items-center gap-2">
+                    <span>🎀</span> หมวดหมู่ผลงานทั้งหมด
+                </h2>
+            </div>
+            <div id="category-filters" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Portfolio Grid Section -->
+        <div class="max-w-6xl mx-auto px-4 mt-6 mb-16">
+            <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+            <div id="empty-state" class="hidden text-center py-16 cream-card rounded-2xl">
+                <p class="text-base text-[#8C6D65]">ยังไม่มีผลงานในหมวดหมู่นี้</p>
+                <p class="text-xs text-[#A68A82] mt-1">คุณสามารถเพิ่มผลงานผ่านระบบหลังบ้านได้เลยค่ะ</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#FFFDF9] border-t border-[#EEDCD9] py-6 text-center text-xs md:text-sm text-[#8C6D65]">
+        <p id="footer-text-display">ตัวอย่างงานดิสคอร์ดร้าน mamiepoko</p>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeLightbox()">
+        <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative" onclick="event.stopPropagation()">
+            <button onclick="closeLightbox()" class="absolute top-3 right-3 bg-white/90 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow font-bold z-10 text-sm">✕</button>
+            <img id="lightbox-img" src="" alt="Zoomed Work" class="w-full max-h-[65vh] object-contain bg-neutral-50">
+            <div class="p-6 bg-[#FFFDF9]">
+                <span id="lightbox-category" class="inline-block px-3 py-1 bg-[#F9EBEA] text-[#C82A38] text-xs font-semibold rounded-full mb-2"></span>
+                <h3 id="lightbox-title" class="text-lg md:text-xl font-bold text-[#5A3E36]"></h3>
+                <p id="lightbox-desc" class="text-xs md:text-sm text-[#73574F] mt-2 whitespace-pre-line"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div id="admin-dashboard-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#FFFDF9] rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-[#EEDCD9] flex flex-col">
+            <div class="p-5 border-b border-[#EEDCD9] flex justify-between items-center bg-[#FAF6F0] sticky top-0 z-10">
+                <h3 class="text-base md:text-lg font-bold text-[#5A3E36] flex items-center gap-2">
+                    <span>🛠️</span> ระบบหลังบ้านผู้ดูแลระบบ (Cloud Synchronized)
+                </h3>
+                <button onclick="closeAdminDashboard()" class="bg-white text-gray-600 hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center shadow font-bold text-sm">✕</button>
+            </div>
+
+            <div class="flex flex-wrap border-b border-[#EEDCD9] bg-[#FFFDF9] px-4 md:px-6 pt-2 gap-2 md:gap-4">
+                <button onclick="switchAdminTab('works')" id="tab-btn-works" class="py-2.5 px-3 md:px-4 font-semibold text-xs md:text-sm border-b-2 border-[#C82A38] text-[#C82A38]">จัดการผลงาน</button>
+                <button onclick="switchAdminTab('categories')" id="tab-btn-categories" class="py-2.5 px-3 md:px-4 font-semibold text-xs md:text-sm border-b-2 border-transparent text-[#8C6D65]">จัดการหมวดหมู่</button>
+                <button onclick="switchAdminTab('contacts')" id="tab-btn-contacts" class="py-2.5 px-3 md:px-4 font-semibold text-xs md:text-sm border-b-2 border-transparent text-[#8C6D65]">ช่องทางติดต่อ</button>
+                <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="py-2.5 px-3 md:px-4 font-semibold text-xs md:text-sm border-b-2 border-transparent text-[#8C6D65]">ตั้งค่าโปรไฟล์ & เว็บ</button>
+            </div>
+
+            <div class="p-4 md:p-6 flex-grow">
+                <!-- TAB 1: WORKS -->
+                <div id="tab-content-works" class="space-y-6">
+                    <div class="bg-[#F9EBEA]/40 p-5 rounded-2xl border border-[#EEDCD9]">
+                        <h4 class="font-bold text-[#5A3E36] mb-3 text-sm md:text-base">➕ เพิ่มผลงานใหม่ (อัปโหลดรูปภาพเข้าฐานข้อมูลออนไลน์)</h4>
+                        <form onsubmit="handleAddWorks(event)" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#8C6D65] mb-1">ชื่อผลงาน / หัวข้อหลัก</label>
+                                    <input type="text" id="work-title" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required placeholder="เช่น โทนร้านค้าสตรอว์เบอร์รี">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#8C6D65] mb-1">เลือกหมวดหมู่</label>
+                                    <select id="work-category" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required></select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">เลือกไฟล์รูปภาพ (หลายรูปได้) หรือ วาง URL</label>
+                                <div id="drop-zone" class="border-2 border-dashed border-[#C82A38]/30 bg-white p-6 rounded-2xl text-center cursor-pointer">
+                                    <span class="text-3xl block mb-1">🍓📁</span>
+                                    <p class="text-xs font-semibold text-[#5A3E36]">คลิกเพื่อเลือกรูปภาพ หรือลากไฟล์หลายรูปมาวางที่นี่</p>
+                                    <input type="file" id="work-image-files" accept="image/*" multiple class="hidden" onchange="handleFileSelectPreview(this)">
+                                </div>
+                                <div id="upload-preview-list" class="flex flex-wrap gap-2 mt-3"></div>
+                                <input type="text" id="work-image-url" placeholder="หรือวางลิงก์รูปภาพ URL" class="w-full mt-2 px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">รายละเอียดเพิ่มเติม</label>
+                                <textarea id="work-desc" rows="2" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" placeholder="รายละเอียดสคริปต์ หรือเรฟเฟอเรนซ์..."></textarea>
+                            </div>
+                            <button type="submit" id="save-work-btn" class="cherry-theme text-white px-6 py-2.5 rounded-xl font-medium text-sm shadow">บันทึกผลงานขึ้นออนไลน์ ☁️</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-[#5A3E36] mb-3 text-sm md:text-base">📋 รายการผลงานทั้งหมดในคลาวด์</h4>
+                        <div id="admin-works-list" class="space-y-3 max-h-72 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CATEGORIES -->
+                <div id="tab-content-categories" class="hidden space-y-6">
+                    <div class="bg-[#F9EBEA]/40 p-5 rounded-2xl border border-[#EEDCD9]">
+                        <h4 class="font-bold text-[#5A3E36] mb-3 text-sm md:text-base">➕ สร้างหมวดหมู่ใหม่</h4>
+                        <form onsubmit="handleAddCategory(event)" class="flex gap-3">
+                            <input type="text" id="new-category-name" placeholder="ชื่อหมวดหมู่ใหม่" class="flex-grow px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                            <button type="submit" class="cherry-theme text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow">เพิ่มหมวดหมู่</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-[#5A3E36] mb-3 text-sm md:text-base">🏷️ จัดการหมวดหมู่ที่มีอยู่</h4>
+                        <div id="admin-categories-list" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CONTACTS -->
+                <div id="tab-content-contacts" class="hidden space-y-6">
+                    <div class="bg-[#F9EBEA]/40 p-5 rounded-2xl border border-[#EEDCD9]">
+                        <h4 class="font-bold text-[#5A3E36] mb-3 text-sm md:text-base">➕ เพิ่มช่องทางการติดต่อใหม่</h4>
+                        <form onsubmit="handleAddContact(event)" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" id="contact-name" placeholder="ชื่อแพลตฟอร์ม (เช่น Line)" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                                <input type="text" id="contact-url" placeholder="ลิงก์ติดต่อ URL" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" id="contact-icon" placeholder="ไอคอน (เช่น 💬)" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                                <input type="text" id="contact-desc" placeholder="คำอธิบายสั้นๆ" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white">
+                            </div>
+                            <button type="submit" class="cherry-theme text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow">บันทึกช่องทางติดต่อ</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-[#5A3E36] mb-3 text-sm md:text-base">📞 จัดการช่องทางการติดต่อ</h4>
+                        <div id="admin-contacts-list" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: SETTINGS -->
+                <div id="tab-content-settings" class="hidden space-y-6">
+                    <div class="bg-[#F9EBEA]/40 p-5 rounded-2xl border border-[#EEDCD9]">
+                        <h4 class="font-bold text-[#5A3E36] mb-4 text-sm md:text-base">⚙️ ตั้งค่าเว็บไซต์ & โปรไฟล์</h4>
+                        <form onsubmit="handleSaveSettings(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">ชื่อร้านค้า / หัวข้อเว็บ</label>
+                                <input type="text" id="setting-title" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">คำอธิบายร้านค้า</label>
+                                <input type="text" id="setting-subtitle" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">ข้อความด้านล่างสุดของเว็บ (Footer Text)</label>
+                                <input type="text" id="setting-footer" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">รูปไอคอนข้างชื่อเว็บ / โปรไฟล์ (อัปโหลด หรือ วาง URL)</label>
+                                <input type="file" id="setting-profile-file" accept="image/*" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white mb-2">
+                                <input type="text" id="setting-profile-url" placeholder="หรือวางลิงก์ URL" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#8C6D65] mb-1">รูปแบนเนอร์ด้านหลัง (อัปโหลด หรือ วาง URL)</label>
+                                <input type="file" id="setting-banner-file" accept="image/*" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white mb-2">
+                                <input type="text" id="setting-banner-url" placeholder="หรือวางลิงก์ URL" class="w-full px-3 py-2 border border-[#EEDCD9] rounded-xl text-sm bg-white">
+                            </div>
+                            <button type="submit" id="save-setting-btn" class="cherry-theme text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow">บันทึกการตั้งค่า</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Code -->
+    <script>
+        // -------------------------------------------------------------
+        // Firebase Configuration From Your Console Screen
+        // -------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGJ3-0ZhvJTTiRtK4xab6XmbXnG5l1eto",
+            authDomain: "mamiepoko-showcase.firebaseapp.com",
+            projectId: "mamiepoko-showcase",
+            storageBucket: "mamiepoko-showcase.firebasestorage.app",
+            messagingSenderId: "603837242159",
+            appId: "1:603837242159:web:d677a35e7b39c3b960dfda",
+            measurementId: "G-C08XKP8W64"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // State variables
+        let categories = ['ทั้งหมด', 'โทนร้านค้า', 'แนวพูดคุย', 'เรฟงานออกแบบ'];
+        let works = [];
+        let contacts = [];
+        let settings = {
+            title: 'คลังรวมตัวอย่างงาน & โทนร้านค้า',
+            subtitle: 'รวบรวมเรฟเฟอเรนซ์งานออกแบบ สคริปต์แนวพูดคุย และโทนแต่งร้านค้าแบบเรียบหรู 🍓',
+            footerText: 'ตัวอย่างงานดิสคอร์ดร้าน mamiepoko',
+            profileImg: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+            bannerImg: ''
+        };
+
+        let currentFilter = 'ทั้งหมด';
+        let visitorSession = JSON.parse(localStorage.getItem('portfolio_visitor')) || null;
+        let pendingUploadImages = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupFirebaseRealtimeListeners();
+            checkVisitorSession();
+            setupDragAndDrop();
+        });
+
+        // -------------------------------------------------------------
+        // Firebase Realtime Online Listeners (Everyone sees update instantly)
+        // -------------------------------------------------------------
+        function setupFirebaseRealtimeListeners() {
+            // Listen Settings
+            db.collection('settings').doc('config').onSnapshot(doc => {
+                if (doc.exists) {
+                    settings = doc.data();
+                    renderSiteHeader();
+                }
+            });
+
+            // Listen Categories
+            db.collection('categories').doc('list').onSnapshot(doc => {
+                if (doc.exists && doc.data().items) {
+                    categories = doc.data().items;
+                    renderCategories();
+                }
+            });
+
+            // Listen Contacts
+            db.collection('contacts').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
+                contacts = [];
+                snapshot.forEach(d => contacts.push({ id: d.id, ...d.data() }));
+                renderContacts();
+            });
+
+            // Listen Works
+            db.collection('works').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                works = [];
+                snapshot.forEach(d => works.push({ id: d.id, ...d.data() }));
+                renderWorks();
+            });
+        }
+
+        // Visitor Auth Logic
+        function checkVisitorSession() {
+            if (!visitorSession) {
+                document.getElementById('welcome-modal').classList.remove('hidden');
+                document.getElementById('welcome-icon-preview').src = settings.profileImg;
+            } else {
+                document.getElementById('welcome-modal').classList.add('hidden');
+                applyVisitorData();
+            }
+        }
+
+        function handleVisitorLogin(event) {
+            event.preventDefault();
+            const name = document.getElementById('visitor-name').value.trim();
+            const email = document.getElementById('visitor-email').value.trim();
+            if (name && email) {
+                visitorSession = { name, email };
+                localStorage.setItem('portfolio_visitor', JSON.stringify(visitorSession));
+                document.getElementById('welcome-modal').classList.add('hidden');
+                applyVisitorData();
+            }
+        }
+
+        function logoutVisitor() {
+            if (confirm('ต้องการเปลี่ยนบัญชีผู้เข้าชมใช่ไหมคะ?')) {
+                localStorage.removeItem('portfolio_visitor');
+                visitorSession = null;
+                document.getElementById('welcome-modal').classList.remove('hidden');
+            }
+        }
+
+        function applyVisitorData() {
+            if (!visitorSession) return;
+            document.getElementById('user-display-tag').innerText = `ยินดีต้อนรับ คุณ ${visitorSession.name}`;
+            const adminBtn = document.getElementById('admin-nav-btn');
+            if (visitorSession.email.toLowerCase() === 'dangocress1@gmail.com') {
+                adminBtn.classList.remove('hidden');
+                adminBtn.classList.add('flex');
+            } else {
+                adminBtn.classList.add('hidden');
+            }
+        }
+
+        // Render UI
+        function renderSiteHeader() {
+            document.getElementById('page-title').innerText = settings.title;
+            document.getElementById('site-main-title').innerText = settings.title;
+            document.getElementById('site-sub-title').innerText = settings.subtitle;
+            document.getElementById('nav-shop-name').innerText = settings.title.split('&')[0].trim();
+            document.getElementById('profile-img').src = settings.profileImg;
+            document.getElementById('nav-shop-icon').src = settings.profileImg;
+            document.getElementById('footer-text-display').innerText = settings.footerText || 'ตัวอย่างงานดิสคอร์ดร้าน mamiepoko';
+            
+            const bannerContainer = document.getElementById('banner-container');
+            if (settings.bannerImg) {
+                bannerContainer.style.backgroundImage = `url('${settings.bannerImg}')`;
+            }
+            renderAdminLists();
+        }
+
+        function renderContacts() {
+            const contactGrid = document.getElementById('contact-channels-grid');
+            contactGrid.innerHTML = '';
+            contacts.forEach(c => {
+                const a = document.createElement('a');
+                a.href = c.url;
+                a.target = '_blank';
+                a.className = 'flex items-center space-x-3 p-3.5 bg-white rounded-2xl border border-[#EEDCD9] hover:border-[#C82A38] hover:shadow-md transition group';
+                a.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-[#F9EBEA] text-[#C82A38] flex items-center justify-center text-lg font-bold group-hover:scale-105 transition shrink-0">${c.icon}</div>
+                    <div class="overflow-hidden">
+                        <h4 class="font-bold text-sm text-[#5A3E36] truncate">${c.name}</h4>
+                        <p class="text-xs text-[#8C6D65] truncate">${c.description || 'คลิกเพื่อติดต่อ'}</p>
+                    </div>
+                `;
+                contactGrid.appendChild(a);
+            });
+            renderAdminLists();
+        }
+
+        function renderCategories() {
+            const filterContainer = document.getElementById('category-filters');
+            filterContainer.innerHTML = '';
+            const allCats = ['ทั้งหมด', ...categories.filter(c => c !== 'ทั้งหมด')];
+            allCats.forEach(cat => {
+                const btn = document.createElement('button');
+                const isActive = currentFilter === cat;
+                btn.className = `px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm ${isActive ? 'cherry-theme text-white shadow' : 'bg-white text-[#73574F] hover:bg-[#F9EBEA] border border-[#EEDCD9]'}`;
+                btn.innerText = cat;
+                btn.onclick = () => { currentFilter = cat; renderWorks(); renderCategories(); };
+                filterContainer.appendChild(btn);
+            });
+
+            const workCategorySelect = document.getElementById('work-category');
+            if (workCategorySelect) {
+                workCategorySelect.innerHTML = '';
+                categories.filter(c => c !== 'ทั้งหมด').forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.innerText = cat;
+                    workCategorySelect.appendChild(opt);
+                });
+            }
+            renderAdminLists();
+        }
+
+        function renderWorks() {
+            const grid = document.getElementById('portfolio-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+            const filteredWorks = currentFilter === 'ทั้งหมด' ? works : works.filter(w => w.category === currentFilter);
+
+            if (filteredWorks.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filteredWorks.forEach(work => {
+                    const card = document.createElement('div');
+                    card.className = 'cream-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col cursor-pointer group';
+                    card.onclick = () => openLightbox(work);
+                    card.innerHTML = `
+                        <div class="h-52 md:h-56 overflow-hidden bg-neutral-100 relative">
+                            <img src="${work.image}" alt="${work.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[#C82A38] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">${work.category}</span>
+                        </div>
+                        <div class="p-4 md:p-5 flex flex-col flex-grow">
+                            <h3 class="font-bold text-[#5A3E36] text-base md:text-lg mb-1">${work.title}</h3>
+                            <p class="text-xs text-[#8C6D65] line-clamp-2">${work.description || 'ไม่มีรายละเอียดเพิ่มเติม'}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+            renderAdminLists();
+        }
+
+        // Lightbox Controls
+        function openLightbox(work) {
+            document.getElementById('lightbox-img').src = work.image;
+            document.getElementById('lightbox-title').innerText = work.title;
+            document.getElementById('lightbox-category').innerText = work.category;
+            document.getElementById('lightbox-desc').innerText = work.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+        function closeLightbox() { document.getElementById('lightbox-modal').classList.add('hidden'); }
+
+        // Admin Actions
+        function openAdminDashboard() {
+            if (!visitorSession || visitorSession.email.toLowerCase() !== 'dangocress1@gmail.com') return;
+            document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+            switchAdminTab('works');
+        }
+        function closeAdminDashboard() { document.getElementById('admin-dashboard-modal').classList.add('hidden'); }
+
+        function switchAdminTab(tabName) {
+            ['works', 'categories', 'contacts', 'settings'].forEach(t => {
+                document.getElementById(`tab-content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).className = 'py-2.5 px-3 md:px-4 font-semibold text-xs md:text-sm border-b-2 border-transparent text-[#8C6D65]';
+            });
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tabName}`).className = 'py-2.5 px-3 md:px-4 font-semibold text-xs md:text-sm border-b-2 border-[#C82A38] text-[#C82A38]';
+        }
+
+        // Drag and Drop Helper
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('work-image-files');
+            if (!dropZone) return;
+            dropZone.onclick = () => fileInput.click();
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('bg-[#F9EBEA]'); });
+            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('bg-[#F9EBEA]'); });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('bg-[#F9EBEA]');
+                if (e.dataTransfer.files) processFiles(e.dataTransfer.files);
+            });
+        }
+
+        function handleFileSelectPreview(input) { if (input.files) processFiles(input.files); }
+
+        function processFiles(files) {
+            pendingUploadImages = [];
+            const previewList = document.getElementById('upload-preview-list');
+            previewList.innerHTML = '';
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    pendingUploadImages.push(e.target.result);
+                    const thumb = document.createElement('div');
+                    thumb.className = 'w-16 h-16 rounded-xl overflow-hidden border border-[#EEDCD9]';
+                    thumb.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    previewList.appendChild(thumb);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Add Works Online to Firestore
+        async function handleAddWorks(event) {
+            event.preventDefault();
+            const btn = document.getElementById('save-work-btn');
+            btn.innerText = 'กำลังบันทึกขึ้นออนไลน์...';
+            btn.disabled = true;
+
+            const title = document.getElementById('work-title').value.trim();
+            const category = document.getElementById('work-category').value;
+            const desc = document.getElementById('work-desc').value.trim();
+            const urlInput = document.getElementById('work-image-url').value.trim();
+
+            try {
+                if (pendingUploadImages.length > 0) {
+                    for (let index = 0; index < pendingUploadImages.length; index++) {
+                        const img = pendingUploadImages[index];
+                        const workTitleFormatted = pendingUploadImages.length > 1 ? `${title} (${index + 1})` : title;
+                        await db.collection('works').add({
+                            title: workTitleFormatted,
+                            category,
+                            description: desc,
+                            image: img,
+                            createdAt: Date.now() + index
+                        });
+                    }
+                } else if (urlInput) {
+                    await db.collection('works').add({
+                        title, category, description: desc, image: urlInput, createdAt: Date.now()
+                    });
+                } else {
+                    alert('กรุณาเลือกรูปภาพอย่างน้อย 1 รูปค่ะ');
+                    btn.innerText = 'บันทึกผลงานขึ้นออนไลน์ ☁️';
+                    btn.disabled = false;
+                    return;
+                }
+
+                alert('เพิ่มผลงานขึ้นออนไลน์สำเร็จแล้วค่ะ! ลูกค้าทุกคนจะเห็นทันที ✨');
+                document.getElementById('work-title').value = '';
+                document.getElementById('work-desc').value = '';
+                document.getElementById('work-image-url').value = '';
+                document.getElementById('work-image-files').value = '';
+                document.getElementById('upload-preview-list').innerHTML = '';
+                pendingUploadImages = [];
+            } catch (err) {
+                alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+            } finally {
+                btn.innerText = 'บันทึกผลงานขึ้นออนไลน์ ☁️';
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteWork(id) {
+            if (confirm('คุณต้องการลบผลงานนี้ใช่หรือไม่คะ?')) {
+                await db.collection('works').doc(id).delete();
+            }
+        }
+
+        // Add Category Online
+        async function handleAddCategory(event) {
+            event.preventDefault();
+            const newCat = document.getElementById('new-category-name').value.trim();
+            if (newCat && !categories.includes(newCat)) {
+                categories.push(newCat);
+                await db.collection('categories').doc('list').set({ items: categories });
+                document.getElementById('new-category-name').value = '';
+                alert('เพิ่มหมวดหมู่สำเร็จแล้วค่ะ!');
+            }
+        }
+
+        async function deleteCategory(catName) {
+            if (confirm(`คุณต้องการลบหมวดหมู่ "${catName}" ใช่หรือไม่คะ?`)) {
+                categories = categories.filter(c => c !== catName);
+                await db.collection('categories').doc('list').set({ items: categories });
+            }
+        }
+
+        // Add Contact Online
+        async function handleAddContact(event) {
+            event.preventDefault();
+            const name = document.getElementById('contact-name').value.trim();
+            const url = document.getElementById('contact-url').value.trim();
+            const icon = document.getElementById('contact-icon').value.trim();
+            const description = document.getElementById('contact-desc').value.trim();
+
+            if (name && url && icon) {
+                await db.collection('contacts').add({
+                    name, url, icon, description, createdAt: Date.now()
+                });
+                document.getElementById('contact-name').value = '';
+                document.getElementById('contact-url').value = '';
+                document.getElementById('contact-icon').value = '';
+                document.getElementById('contact-desc').value = '';
+                alert('เพิ่มช่องทางติดต่อสำเร็จแล้วค่ะ!');
+            }
+        }
+
+        async function deleteContact(id) {
+            if (confirm('ต้องการลบช่องทางการติดต่อนี้ใช่หรือไม่คะ?')) {
+                await db.collection('contacts').doc(id).delete();
+            }
+        }
+
+        // Save Settings Online
+        async function handleSaveSettings(event) {
+            event.preventDefault();
+            const btn = document.getElementById('save-setting-btn');
+            btn.innerText = 'กำลังบันทึก...';
+            btn.disabled = true;
+
+            const newSettings = {
+                title: document.getElementById('setting-title').value.trim(),
+                subtitle: document.getElementById('setting-subtitle').value.trim(),
+                footerText: document.getElementById('setting-footer').value.trim(),
+                profileImg: settings.profileImg,
+                bannerImg: settings.bannerImg
+            };
+
+            const pUrl = document.getElementById('setting-profile-url').value.trim();
+            const pFile = document.getElementById('setting-profile-file');
+            const bUrl = document.getElementById('setting-banner-url').value.trim();
+            const bFile = document.getElementById('setting-banner-file');
+
+            if (pUrl) newSettings.profileImg = pUrl;
+            if (bUrl) newSettings.bannerImg = bUrl;
+
+            const readPromises = [];
+
+            if (pFile.files && pFile.files[0]) {
+                readPromises.push(new Promise(res => {
+                    const r = new FileReader();
+                    r.onload = e => { newSettings.profileImg = e.target.result; res(); };
+                    r.readAsDataURL(pFile.files[0]);
+                }));
+            }
+
+            if (bFile.files && bFile.files[0]) {
+                readPromises.push(new Promise(res => {
+                    const r = new FileReader();
+                    r.onload = e => { newSettings.bannerImg = e.target.result; res(); };
+                    r.readAsDataURL(bFile.files[0]);
+                }));
+            }
+
+            await Promise.all(readPromises);
+            await db.collection('settings').doc('config').set(newSettings);
+            btn.innerText = 'บันทึกการตั้งค่า';
+            btn.disabled = false;
+            alert('บันทึกการตั้งค่าออนไลน์เรียบร้อยแล้วค่ะ! ✨');
+        }
+
+        // Admin Lists Render Helper
+        function renderAdminLists() {
+            const worksList = document.getElementById('admin-works-list');
+            if (worksList) {
+                worksList.innerHTML = '';
+                works.forEach(w => {
+                    worksList.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#EEDCD9]">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <img src="${w.image}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+                                <div class="overflow-hidden">
+                                    <h5 class="font-bold text-xs md:text-sm text-[#5A3E36] truncate">${w.title}</h5>
+                                    <span class="text-[10px] md:text-xs text-[#C82A38] font-medium">${w.category}</span>
+                                </div>
+                            </div>
+                            <button onclick="deleteWork('${w.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1.5 rounded-lg font-medium transition shrink-0">ลบ</button>
+                        </div>
+                    `;
+                });
+            }
+
+            const catsList = document.getElementById('admin-categories-list');
+            if (catsList) {
+                catsList.innerHTML = '';
+                categories.forEach(cat => {
+                    catsList.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#EEDCD9]">
+                            <span class="font-bold text-sm text-[#5A3E36]">${cat}</span>
+                            ${cat !== 'ทั้งหมด' ? `<button onclick="deleteCategory('${cat}')" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-medium">ลบ</button>` : '<span class="text-xs text-gray-400">ค่าเริ่มต้น</span>'}
+                        </div>
+                    `;
+                });
+            }
+
+            const contactsList = document.getElementById('admin-contacts-list');
+            if (contactsList) {
+                contactsList.innerHTML = '';
+                contacts.forEach(c => {
+                    contactsList.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#EEDCD9]">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <span class="text-xl shrink-0">${c.icon}</span>
+                                <div class="overflow-hidden">
+                                    <h5 class="font-bold text-xs md:text-sm text-[#5A3E36] truncate">${c.name}</h5>
+                                </div>
+                            </div>
+                            <button onclick="deleteContact('${c.id}')" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-medium">ลบ</button>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('setting-title').value = settings.title || '';
+            document.getElementById('setting-subtitle').value = settings.subtitle || '';
+            document.getElementById('setting-footer').value = settings.footerText || '';
+        }
+    </script>
+</body>
+</html>
